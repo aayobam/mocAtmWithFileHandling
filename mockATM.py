@@ -9,81 +9,184 @@ from auth_session.session import (delete_login_session, create_login_session)
 date_time= dt.now()
 
 
-        
+     
  
 #customers makes complaints
 def complaint():
     complaint = input("What issue will you like to report?: ")
     print("Your Complaint goes thus: ", complaint)
     print("Thank you for contacting us.")
-    response = input("Would you like to perform another operation? type y/yes or n/no: ".lower())
-    if response == "yes" or response == "y":
-        login()
-    elif response == "no" or response == 'n':
-        print("Thanks for banking with us")
-        exit()
+    try:
+        response = input("Would you like to perform another operation? type y/yes or n/no: ".lower())
+        if response == "yes" or response == "y":
+            login()
+            
+        elif response == "no" or response == 'n':
+            print("Thanks for banking with us")
+            exit()
+            
+        else:
+            print("Invalid response supplied")
+            bankOperation()
+    except TypeError:
+        print("character value Expected")
+    finally:
+        bankOperation()
 
-  
-#funds withdrawal function
-def withdrawal():
-    withdrawal = int(input("How much would you like to withdraw?: "))
-    database.withdraw_funds(accountNumberFromUser, withdrawal)
+
+# Check available balance
+def current_balance(user):
+    current_balance = user[4]
+    print(f"Hello {user[0].upper()} {user[1].upper()} your available balance is: {current_balance}")
     response = input("Would you like to perform another operation? type y/yes or n/no: \n".casefold())
-    if response == "yes" or response == "y":
-        login()
-    elif response == "no" or response == 'n':
-        print("Thanks for banking with us, you may take your card")
-        exit()
+    try:
+        if response == "yes" or response == "y":
+            bankOperation(user)  
+            
+        elif response == "no" or response == 'n':
+            print("Thanks for banking with us, you may take your card")
+            delete_login_session(accountNumberFromUser)
+            exit()
+            
+        else:
+            print("Invalid response suplied, please try again")
+            bankOperation(user)    
+    except TypeError:
+        print("Character value expected")
+    finally:
+        bankOperation(user)
+    
+
+# Withdraws funds from current user's account.
+def withdrawal(user):
+    current_balance = user[4]
+    try:
+        withdrawal = float(input("How much would you like to withdraw?: "))
+        if current_balance <= 0 or withdrawal > current_balance:
+            print("Insufficient funds")
+            response = input("Would you like to make a deposit ? Type y for YES or n for NO".lower())
+            if response == "y":
+                deposit(user)
+            elif response == "no":
+                print("Thanks for banking with us")
+                bankOperation(user)
+        elif withdrawal <= 0:
+            print(f"You cannot withdraw {withdrawal} from your account, try a higher value")
+            withdrawal()
+            
+        else:
+            current_balance = float(current_balance) - withdrawal
+            user[4] = current_balance
+    except ValueError:
+        print("Invalid Input supplied")
+        deposit(user)
         
-
-# funds deposit function   
-def deposit():
-    deposit = int(input("How much would you like to deposit?: "))
-    database.deposit_funds(accountNumberFromUser, deposit)
-    response = input("Would you like to perform another operation? type y/yes or n/no: ".lower())
-    if response == "yes" or response == "y":
-        login()
-    elif response == "no" or response == 'n':
-        print("Thanks for banking with us, you may take your card")
-        exit()
+    except TypeError:
+        print("Digit value expected")
+        deposit(user)
+    finally:
+        updated_user = user[0] + "," + user[1] + "," + user[2] + "," + user[3] + "," + str(user[4])
         
+        user_db_path = "data/user_record/"
+        file = open(user_db_path + str(accountNumberFromUser) + ".txt", "w")
+        file.write(updated_user)
+        file.close()
+        print(f"you withdrew {withdrawal} and your available balance is : {current_balance}")
+        try:
+            response = input("Would you like to perform another operation? type y/yes or n/no: \n".casefold())
+            if response == "yes" or response == "y":
+                bankOperation(user)
+                
+            elif response == "no" or response == 'n':
+                print("Thanks for banking with us, you may take your card")
+                delete_login_session(accountNumberFromUser)
+                exit()
+                
+            else:
+                print("Invalid value supplied, please try again")
+                bankOperation(user)     
+        except TypeError:
+            print("Digit input expected, please try again")  
+        finally:
+            bankOperation(user)
 
-   
-def current_balance():
-    database.get_current_balance(accountNumberFromUser)
 
-   
+# Deposit funds to current user account   
+def deposit(user):
+    current_balance = user[4]
+    try:
+        deposit = float(input("How much would you like to deposit?: "))
+        current_balance = float(current_balance) + deposit
+        user[4] = current_balance
+    except ValueError:
+        print("Invalid Input supplied")
+        deposit(user)
+    except TypeError:
+        print("Digit value expected")
+        deposit(user)
+    finally:
+        updated_user = user[0] + "," + user[1] + "," + user[2] + "," + user[3] + "," + str(user[4])
+        
+        user_db_path = "data/user_record/"
+        file = open(user_db_path + str(accountNumberFromUser) + ".txt", "w")
+        file.write(updated_user)
+        file.close()
+        print(f"you deposited {deposit} and your available balance is: {current_balance}")
+        try:
+            response = input("Would you like to perform another operation? type y/yes or n/no: ".lower())
+            if response == "yes" or response == "y":
+                bankOperation(user)
+                
+            elif response == "no" or response == 'n':
+                print("Thanks for banking with us, you may take your card")
+                #delete_login_session(accountNumberFromUser)
+                exit()
+                
+            else:
+                print("Invalid value supplied, please try again")
+                bankOperation(user)  
+        except TypeError:
+            print("Digit input expected, please try again")
+        finally:
+            bankOperation(user)
+        
+ 
 #selected operations function 
 def bankOperation(user):
     print("Welcome", user[0].upper(), user[1].upper(), "you are logged in on :", date_time, "\n")
     print("The below are the operations you can perform")
 
     print("[1] - CASH DEPOSIT.\n[2] - CASH WITHDRAWAL.\n[3] - CHECK BALANCE.\n[4] - COMPLAINTS.\n[5] - LOGOUT.\n[6] - EXIT.\n")
-    selectedOption = int(input("Which operation would you like to perform ?: "))
-    
-    if selectedOption == 1:
-        deposit()
+    try:
+        selectedOption = int(input("Which operation would you like to perform ?: "))
         
-    elif selectedOption == 2:
-        withdrawal()
-        
-    elif selectedOption == 3:
-        current_balance()
-        
-    elif selectedOption == 4:
-        complaint()
-        
-    elif selectedOption == 5:
-        delete_login_session(accountNumberFromUser)
-        logout()
-        
-    elif selectedOption == 6:
-        print("Please take your card and thanks for banking with us.")
-        delete_login_session(accountNumberFromUser)
-        exit()
-    else:
-        print("invalid option selected please try again")
-        bankOperation()
+        if selectedOption == 1:
+            deposit(user)
+            
+        elif selectedOption == 2:
+            withdrawal(user)
+            
+        elif selectedOption == 3:
+            current_balance(user)
+            
+        elif selectedOption == 4:
+            complaint()
+            
+        elif selectedOption == 5:
+            delete_login_session(accountNumberFromUser)
+            logout()
+            
+        elif selectedOption == 6:
+            print("Please take your card and thanks for banking with us.")
+            exit()
+            delete_login_session(accountNumberFromUser)
+        else:
+            print("invalid option selected please try again")
+            bankOperation(user)
+    except ValueError:
+        print("Digit is expected")
+    finally:
+        bankOperation(user)
 
 
 accountNumberFromUser = "" # declared this so the session.delete_login_session(accountNumberFromUser) could access its current value which is the account number

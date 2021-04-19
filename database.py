@@ -29,16 +29,13 @@ def create_record(account_number, first_name, last_name, email, password):
         does_file_contains_data = read_record(user_db_path + str(account_number) + ".txt")
         if not does_file_contains_data:
             delete_record(account_number)
-            
     else:
         file.write(user_data)
-        completion_state = True
-        
+        completion_state = True   
     finally:
         file.close()
         return completion_state
 
-    
 
 #  find user with account nummber, fetch content of the file and return it. 
 def read_record(account_number):
@@ -85,8 +82,7 @@ def delete_record(account_number):
             
         finally:
             return is_delete_successful
-            
-        
+
         
 # find user in the record folder. 
 def does_email_exist(email):
@@ -99,8 +95,6 @@ def does_email_exist(email):
     return False
 
       
-       
-
 # checks if account number exist
 def does_account_number_exist(account_number):
     all_users = os.listdir(user_db_path)
@@ -110,7 +104,6 @@ def does_account_number_exist(account_number):
     return False
 
 
- 
 # checks if account number is in file and password is valid and correct.
 def authenticated_user(account_number, password):
     if does_account_number_exist(account_number):
@@ -119,62 +112,3 @@ def authenticated_user(account_number, password):
         if password == user[3]:
             return user
     return False
-      
-        
-def deposit_funds(account_number, amount):
-    global currentBalance
-    all_users = os.listdir(user_db_path)
-    for user in all_users:
-        if user == str(account_number) + ".txt":
-            user_details = read_record(user)
-            user_list = str.split(user_details,",")
-            print(user_list)
-            currentBalance = int(user_list[4])
-            print("Ledger Balance: ",currentBalance)
-            currentBalance += amount
-            print("Your new balance is :", currentBalance)
-            ledger_balance = str(currentBalance) # convert back to string and write this back to its position in the file balance.
-    
-
-def withdraw_funds(account_number, amount):
-    global currentBalance
-    all_users = os.listdir(user_db_path)
-    for user in all_users:
-        if user == str(account_number) + ".txt":
-            user_details = read_record(user)
-            user_list = str.split(user_details,",")
-            currentBalance = int(user_list[4])
-            if currentBalance > amount or currentBalance <= 0:
-                print("Insufficient Account Balance")
-                response = input("Do you want to make deposit ? Type y/yes for YES or n/no NO : ".lower())
-                if response == "yes" or response == "y":
-                    deposit_funds()
-                elif response == "n" or response == "no":
-                    print("Thank you for banking with us")
-                    exit()
-            else:
-                file = open(user_db_path + str(account_number) + ".txt", "a")
-                currentBalance -= amount
-                print("Your new balance is :", currentBalance)
-                user_list[4] = str(currentBalance)
-                print(user_list)
-                file.write(str(user_list))
-                file.close()
-
-
-def get_current_balance(account_number):
-    global currentBalance
-    all_users = os.listdir(user_db_path)
-    for user in all_users:
-        if user == str(account_number) + ".txt":
-            user_details = read_record(user)
-            user_list = str.split(user_details,",")
-            currentBalance = float(user_list[4])
-            print(user_list)
-            print("Ledger Balance :",currentBalance)
-
-
-
-#deposit_funds(1802738336, 5000)
-#withdraw_funds(1802738336, 9000)
-#get_current_balance(1802738336)

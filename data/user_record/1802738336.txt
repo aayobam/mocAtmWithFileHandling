@@ -1,1 +1,1 @@
-mike,lionel,mike@gmail.com,password,6500['mike', 'lionel', 'mike@gmail.com', 'password', '-2500']
+mike,lionel,mike@gmail.com,password,496943.41
