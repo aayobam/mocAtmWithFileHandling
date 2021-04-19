@@ -108,7 +108,6 @@ def does_account_number_exist(account_number):
 def authenticated_user(account_number, password):
     if does_account_number_exist(account_number):
         user = str.split(read_record(account_number), ',')
-        print(user)
         if password == user[3]:
             return user
     return False
