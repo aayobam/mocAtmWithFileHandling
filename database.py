@@ -4,6 +4,8 @@ from validation import account_number_validation
 
 
 user_db_path = "data/user_record/"
+currentBalance = ""
+ledger_balance = ""
 
     
 # Create a file, name of file would be account_number.txt, add the user details to file. 
@@ -29,7 +31,7 @@ def create_record(account_number, first_name, last_name, email, password):
             delete_record(account_number)
             
     else:
-        file.write(str(user_data))
+        file.write(user_data)
         completion_state = True
         
     finally:
@@ -60,7 +62,7 @@ def read_record(account_number):
         print("Invalid account number format")
         
     else:
-        file.readline()
+        return file.read()
     return False
 
 
@@ -83,20 +85,23 @@ def delete_record(account_number):
             
         finally:
             return is_delete_successful
+            
         
         
 # find user in the record folder. 
 def does_email_exist(email):
 
     all_users = os.listdir(user_db_path)
-
     for user in all_users:
         user_list = str.split(read_record(user), ',')
         if email in user_list:
             return True
     return False
 
+      
+       
 
+# checks if account number exist
 def does_account_number_exist(account_number):
     all_users = os.listdir(user_db_path)
     for user in all_users:
@@ -110,11 +115,66 @@ def does_account_number_exist(account_number):
 def authenticated_user(account_number, password):
     if does_account_number_exist(account_number):
         user = str.split(read_record(account_number), ',')
-        #user = str(read_record(account_number))
         print(user)
         if password == user[3]:
             return user
     return False
-create_record(487489487489,"me","you","them","password")
-#create_record(4745203647,"olowu","abayomi","billy","lo")
+      
+        
+def deposit_funds(account_number, amount):
+    global currentBalance
+    all_users = os.listdir(user_db_path)
+    for user in all_users:
+        if user == str(account_number) + ".txt":
+            user_details = read_record(user)
+            user_list = str.split(user_details,",")
+            print(user_list)
+            currentBalance = int(user_list[4])
+            print("Ledger Balance: ",currentBalance)
+            currentBalance += amount
+            print("Your new balance is :", currentBalance)
+            ledger_balance = str(currentBalance) # convert back to string and write this back to its position in the file balance.
+    
 
+def withdraw_funds(account_number, amount):
+    global currentBalance
+    all_users = os.listdir(user_db_path)
+    for user in all_users:
+        if user == str(account_number) + ".txt":
+            user_details = read_record(user)
+            user_list = str.split(user_details,",")
+            currentBalance = int(user_list[4])
+            if currentBalance > amount or currentBalance <= 0:
+                print("Insufficient Account Balance")
+                response = input("Do you want to make deposit ? Type y/yes for YES or n/no NO : ".lower())
+                if response == "yes" or response == "y":
+                    deposit_funds()
+                elif response == "n" or response == "no":
+                    print("Thank you for banking with us")
+                    exit()
+            else:
+                file = open(user_db_path + str(account_number) + ".txt", "a")
+                currentBalance -= amount
+                print("Your new balance is :", currentBalance)
+                user_list[4] = str(currentBalance)
+                print(user_list)
+                file.write(str(user_list))
+                file.close()
+
+
+def get_current_balance(account_number):
+    global currentBalance
+    all_users = os.listdir(user_db_path)
+    for user in all_users:
+        if user == str(account_number) + ".txt":
+            user_details = read_record(user)
+            user_list = str.split(user_details,",")
+            currentBalance = float(user_list[4])
+            print(user_list)
+            print("Ledger Balance :",currentBalance)
+
+
+
+#deposit_funds(1802738336, 5000)
+#withdraw_funds(1802738336, 9000)
+#get_current_balance(1802738336)

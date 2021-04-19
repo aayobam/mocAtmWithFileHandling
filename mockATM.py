@@ -3,27 +3,14 @@ from datetime import datetime as dt
 import database
 from validation import account_number_validation
 from getpass import getpass
-from auth_session import session
+from auth_session.session import (delete_login_session, create_login_session)
 
 
 date_time= dt.now()
-currentBalance = 0
 
 
-   
-#log out of current session   
-def logout():
-    
-    response = input("would you like to perform another operation? reply with y(yes), or n(no):".lower())
-    if response == "yes" or response == "y":
-        login()
         
-    elif response == "no" or response == "no":
-        print("Please Take your card and thanks for banking with us.")
-        session.delete_login_session()
-        exit()
-        
-        
+ 
 #customers makes complaints
 def complaint():
     complaint = input("What issue will you like to report?: ")
@@ -39,13 +26,8 @@ def complaint():
   
 #funds withdrawal function
 def withdrawal():
-    global currentBalance
     withdrawal = int(input("How much would you like to withdraw?: "))
-    if withdrawal <= currentBalance:
-        currentBalance = currentBalance - withdrawal
-        print("Take your cash, your new current balance is ", currentBalance)
-    elif  withdrawal > currentBalance:
-        print("You dont have enough funds to complete this transactions")
+    database.withdraw_funds(accountNumberFromUser, withdrawal)
     response = input("Would you like to perform another operation? type y/yes or n/no: \n".casefold())
     if response == "yes" or response == "y":
         login()
@@ -56,10 +38,8 @@ def withdrawal():
 
 # funds deposit function   
 def deposit():
-    global currentBalance
     deposit = int(input("How much would you like to deposit?: "))
-    currentBalance = currentBalance + deposit
-    print("you have eposited ", deposit," and your current balance is", currentBalance)
+    database.deposit_funds(accountNumberFromUser, deposit)
     response = input("Would you like to perform another operation? type y/yes or n/no: ".lower())
     if response == "yes" or response == "y":
         login()
@@ -67,8 +47,10 @@ def deposit():
         print("Thanks for banking with us, you may take your card")
         exit()
         
-def current_balance(user_details):
-    return currentBalance
+
+   
+def current_balance():
+    database.get_current_balance(accountNumberFromUser)
 
    
 #selected operations function 
@@ -92,46 +74,49 @@ def bankOperation(user):
         complaint()
         
     elif selectedOption == 5:
+        delete_login_session(accountNumberFromUser)
         logout()
         
     elif selectedOption == 6:
         print("Please take your card and thanks for banking with us.")
+        delete_login_session(accountNumberFromUser)
         exit()
     else:
         print("invalid option selected please try again")
         bankOperation()
 
-  
-  
-#Users login function 
+
+accountNumberFromUser = "" # declared this so the session.delete_login_session(accountNumberFromUser) could access its current value which is the account number
+# User Login
 def login():
     print("*** Login into your Account ***")
-    
+    global accountNumberFromUser
     accountNumberFromUser = int(input("Enter your Account Number: "))
+    
     is_valid_account_number = account_number_validation(accountNumberFromUser)
+    
     if is_valid_account_number:
-        
         password = getpass("Enter your password: ")
         user = database.authenticated_user(accountNumberFromUser, password)
         if user:
-            session.create_login_session(accountNumberFromUser, password)
+            create_login_session(accountNumberFromUser)
             bankOperation(user)
-            
-            
         else:
             print("Invalid account or Password")
-            login()
     else:
         print("Account Number Invalid: check that you have up to number is 10 digits and only integers")
         login()
-                
-    
+
+
+# log out of current session   
+def logout():
+    login()
+
     
 #Account number generating function  
 def generateAccountNumber():
     return random.randrange(1111111111,9999999999)
 
-    
     
 # New Users registeration function. 
 def register():
@@ -158,7 +143,6 @@ def register():
         register()
 
  
-    
 # Start of the applications  function
 def init():
     print("Welcome to bankPHP")
