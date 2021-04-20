@@ -62,9 +62,9 @@ def withdrawal(user):
     current_balance = user[4]
     try:
         withdrawal = float(input("How much would you like to withdraw?: "))
-        if current_balance <= 0 or withdrawal > current_balance:
+        if current_balance == 0 or withdrawal > current_balance:
             print("Insufficient funds")
-            response = input("Would you like to make a deposit ? Type y for YES or n for NO".lower())
+            response = input("Would you like to make a deposit ? Type y for YES or n for NO: ".lower())
             if response == "y":
                 deposit(user)
             elif response == "no":
@@ -76,6 +76,7 @@ def withdrawal(user):
             
         else:
             current_balance = float(current_balance) - withdrawal
+            print(f"you withdrew {withdrawal} and your available balance is : {current_balance}")
             user[4] = current_balance
     except ValueError:
         print("Invalid Input supplied")
@@ -91,9 +92,8 @@ def withdrawal(user):
         file = open(user_db_path + str(accountNumberFromUser) + ".txt", "w")
         file.write(updated_user)
         file.close()
-        print(f"you withdrew {withdrawal} and your available balance is : {current_balance}")
         try:
-            response = input("Would you like to perform another operation? type y/yes or n/no: \n".casefold())
+            response = input("Would you like to perform another operation? type y/yes or n/no: ".casefold())
             if response == "yes" or response == "y":
                 bankOperation(user)
                 
@@ -116,8 +116,13 @@ def deposit(user):
     current_balance = user[4]
     try:
         deposit = float(input("How much would you like to deposit?: "))
-        current_balance = float(current_balance) + deposit
-        user[4] = current_balance
+        if deposit <= 0:
+            print(f"You cannot deposit {deposit} into your account, try a higher value")
+            deposit(user)
+        else:
+            current_balance = float(current_balance) + deposit
+            print(f"You deposited {deposit} and your available balance is: {current_balance}")
+            user[4] = current_balance
     except ValueError:
         print("Invalid Input supplied")
         deposit(user)
@@ -126,12 +131,11 @@ def deposit(user):
         deposit(user)
     finally:
         updated_user = user[0] + "," + user[1] + "," + user[2] + "," + user[3] + "," + str(user[4])
-        
         user_db_path = "data/user_record/"
         file = open(user_db_path + str(accountNumberFromUser) + ".txt", "w")
         file.write(updated_user)
         file.close()
-        print(f"you deposited {deposit} and your available balance is: {current_balance}")
+        
         try:
             response = input("Would you like to perform another operation? type y/yes or n/no: ".lower())
             if response == "yes" or response == "y":
