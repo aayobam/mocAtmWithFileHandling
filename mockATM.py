@@ -38,7 +38,7 @@ def complaint():
 def current_balance(user):
     current_balance = user[4]
     print(f"Hello {user[0].upper()} {user[1].upper()} your available balance is: {current_balance}")
-    response = input("Would you like to perform another operation? type y/yes or n/no: \n".casefold())
+    response = input("Would you like to perform another operation? type y/yes or n/no: ".casefold())
     try:
         if response == "yes" or response == "y":
             bankOperation(user)  
